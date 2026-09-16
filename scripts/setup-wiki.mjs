@@ -5,6 +5,7 @@
 //   3. Arquiva páginas que não usam Markdown nos caminhos de content/
 //   4. Menu lateral
 //   5. Busca PostgreSQL com dicionário em português
+//   6. URL do site (WIKI_URL) e confiança no proxy (Caddy local, Render em produção)
 //
 // Uso: npm run setup
 
@@ -132,6 +133,14 @@ async function setupSearch () {
   step('Busca trocada para PostgreSQL com dicionário português (o índice é reconstruído no import)')
 }
 
+// O wiki sempre fica atrás de um proxy que termina o HTTPS (Caddy ou Render).
+// Sem "trust proxy", o Wiki.js enxerga a requisição como HTTP e o IP do proxy.
+async function setupSite () {
+  const host = url.replace(/\/+$/, '')
+  assertOk((await gql(`mutation ($host: String) { site { updateConfig(host: $host, securityTrustProxy: true) { ${RESPONSE} } } }`, { host })).site.updateConfig, 'site.updateConfig')
+  step(`URL do site: ${host} · proxy confiável: sim`)
+}
+
 async function main () {
   console.log(`Configurando ${url} (${locale})`)
   await setupLocale()
@@ -141,6 +150,7 @@ async function main () {
   assertOk((await gql(`mutation { pages { flushCache { ${RESPONSE} } } }`)).pages.flushCache, 'flushCache')
   await setupMenu()
   await setupSearch()
+  await setupSite()
   console.log('Pronto.')
 }
 

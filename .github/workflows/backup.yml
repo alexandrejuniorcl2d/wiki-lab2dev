@@ -1,0 +1,41 @@
+name: Backup do banco (Supabase)
+
+on:
+  schedule:
+    # Todo dia às 06:00 UTC (03:00 em Brasília). Além do backup, as consultas do
+    # pg_dump mantêm o projeto ativo: o Supabase gratuito pausa após 7 dias sem uso.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Gerar backup criptografado
+        id: backup
+        env:
+          SUPABASE_DB_HOST: ${{ secrets.SUPABASE_DB_HOST }}
+          SUPABASE_DB_USER: ${{ secrets.SUPABASE_DB_USER }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: scripts/backup-supabase.sh
+
+      - name: Guardar backup (30 dias)
+        uses: actions/upload-artifact@v7
+        with:
+          name: backup-${{ github.run_id }}
+          path: ${{ steps.backup.outputs.file }}
+          retention-days: 30
+          # O arquivo já está comprimido e criptografado
+          compression-level: 0
+          if-no-files-found: error

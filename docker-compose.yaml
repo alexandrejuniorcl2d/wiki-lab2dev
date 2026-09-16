@@ -25,7 +25,9 @@ services:
     restart: unless-stopped
 
   wiki:
-    image: ghcr.io/requarks/wiki:2.5.314
+    # Mesma imagem do Render. Depois de mudar branding/, rode: docker compose up -d --build
+    build: .
+    image: wiki-lab2dev:local
     depends_on:
       db:
         condition: service_healthy
@@ -36,12 +38,6 @@ services:
       DB_USER: ${DB_USER:-wikijs}
       DB_PASS: ${DB_PASS}
       DB_NAME: ${DB_NAME:-wiki}
-    volumes:
-      # Identidade visual versionada no repositório (ver branding/)
-      - ./branding/static:/wiki/assets/branding:ro
-      - ./branding/favicons:/wiki/assets/favicons:ro
-      - ./branding/manifest.json:/wiki/assets/manifest.json:ro
-      - ./branding/favicon.ico:/wiki/assets/favicon.ico:ro
     # Sem "ports": só o Caddy acessa o wiki, pela rede interna do compose
     expose:
       - "3000"

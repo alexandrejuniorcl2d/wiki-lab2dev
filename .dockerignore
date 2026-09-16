@@ -1,0 +1,5 @@
+# A imagem só precisa do Dockerfile e da pasta branding/.
+# Ignorar o resto evita levar .env (segredos) e backups para o build.
+*
+!Dockerfile
+!branding/
