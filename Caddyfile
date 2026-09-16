@@ -1,0 +1,15 @@
+# WIKI_DOMAIN vem do .env
+#   ":80"              -> só HTTP (uso local)
+#   "wiki.lab2dev.com" -> HTTPS automático com Let's Encrypt (produção)
+{$WIKI_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	reverse_proxy wiki:3000
+}

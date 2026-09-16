@@ -1,0 +1,97 @@
+name: wiki-lab2dev
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-wiki}
+      POSTGRES_USER: ${DB_USER:-wikijs}
+      POSTGRES_PASSWORD: ${DB_PASS:?Defina DB_PASS no arquivo .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging: *logging
+    restart: unless-stopped
+
+  wiki:
+    image: ghcr.io/requarks/wiki:2.5.314
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-wikijs}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME:-wiki}
+    volumes:
+      # Identidade visual versionada no repositório (ver branding/)
+      - ./branding/static:/wiki/assets/branding:ro
+      - ./branding/favicons:/wiki/assets/favicons:ro
+      - ./branding/manifest.json:/wiki/assets/manifest.json:ro
+      - ./branding/favicon.ico:/wiki/assets/favicon.ico:ro
+    # Sem "ports": só o Caddy acessa o wiki, pela rede interna do compose
+    expose:
+      - "3000"
+    logging: *logging
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    depends_on:
+      - wiki
+    environment:
+      WIKI_DOMAIN: ${WIKI_DOMAIN:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    logging: *logging
+    restart: unless-stopped
+
+  backup:
+    image: postgres:17-alpine
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGDATABASE: ${DB_NAME:-wiki}
+      PGUSER: ${DB_USER:-wikijs}
+      PGPASSWORD: ${DB_PASS}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-7}
+    volumes:
+      - ./backups:/backups
+    # Dump na subida do container e depois a cada 24h, apagando os mais antigos que a retenção
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          f=/backups/wiki-$$(date +%Y%m%d-%H%M%S).sql.gz
+          if pg_dump --no-owner | gzip > "$$f"; then echo "backup ok: $$f"; else echo "backup FALHOU"; rm -f "$$f"; fi
+          find /backups -name 'wiki-*.sql.gz' -mtime +$${BACKUP_RETENTION_DAYS} -delete
+          sleep 86400
+        done
+    logging: *logging
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:

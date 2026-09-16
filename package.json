@@ -1,0 +1,14 @@
+{
+  "name": "wiki-lab2dev",
+  "private": true,
+  "description": "Infra, identidade visual e conteúdo inicial da Wiki Lab2dev",
+  "engines": {
+    "node": ">=20.12"
+  },
+  "scripts": {
+    "test": "node --test \"scripts/test/*.test.mjs\"",
+    "glossario": "node scripts/build-glossario.mjs",
+    "setup": "node scripts/setup-wiki.mjs",
+    "import": "node scripts/import-content.mjs"
+  }
+}

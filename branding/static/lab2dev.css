@@ -1,0 +1,91 @@
+/*
+ * Identidade visual Lab2dev para o Wiki.js 2.x
+ *
+ * Servido em /_assets/branding/lab2dev.css e carregado pelo branding/head.html
+ * (Admin > Theme > Head HTML Injection). Só vale nas páginas de conteúdo:
+ * o Wiki.js não injeta código no Admin, no login nem no editor.
+ *
+ * Todo seletor começa com "body" de propósito. O Vuetify cria o
+ * <style id="vuetify-theme-stylesheet"> DEPOIS do código injetado, com os mesmos
+ * seletores (.v-application .primary {... !important}). Com a mesma
+ * especificidade, quem vem por último vence. O "body" aumenta a especificidade
+ * e faz estas regras ganharem.
+ *
+ * Depois de alterar este arquivo, suba o ?v= no head.html. O /_assets é
+ * servido com cache de 7 dias.
+ */
+
+:root {
+  --l2d-roxo: #712682;
+  --l2d-roxo-escuro: #3D1A4A;
+  --l2d-azul: #4C98CD;
+  --l2d-magenta: #E90E8C;
+}
+
+/* Tipografia: o Vuetify fixa Roboto nas classes utilitárias */
+body .v-application,
+body .v-application .contents,
+body .v-application [class*="display-"],
+body .v-application [class*="text-h"],
+body .v-application .headline,
+body .v-application .title,
+body .v-application [class*="subtitle-"],
+body .v-application [class*="body-"],
+body .v-application .caption,
+body .v-application .overline,
+body .v-application .v-btn,
+body .v-application input {
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+/* Header: o .nav-header tem 3 toolbars internas (.nav-header-inner) com a
+   classe "black", que cobriam o gradiente */
+body .v-application .nav-header {
+  background: linear-gradient(90deg, var(--l2d-roxo-escuro) 0%, var(--l2d-roxo) 100%) !important;
+}
+body .v-application .nav-header .nav-header-inner {
+  background-color: transparent !important;
+}
+body .v-application .nav-header .org-logo {
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .9);
+}
+body .v-application .nav-header .v-text-field--solo .v-input__slot {
+  background: rgba(255, 255, 255, .14) !important;
+}
+
+/* Cor primária (TOC, snackbars, destaques) */
+body .v-application .primary {
+  background-color: var(--l2d-roxo) !important;
+  border-color: var(--l2d-roxo) !important;
+}
+body .v-application .primary--text {
+  color: var(--l2d-roxo) !important;
+  caret-color: var(--l2d-roxo) !important;
+}
+body .v-application a {
+  color: var(--l2d-roxo);
+}
+
+/* Menu lateral */
+body .v-application .v-navigation-drawer.primary,
+body .v-application .v-navigation-drawer .v-list.primary {
+  background-color: var(--l2d-roxo-escuro) !important;
+  border-color: var(--l2d-roxo-escuro) !important;
+}
+
+/* Botão flutuante de editar: magenta, cor de CTA do site */
+body .v-application .btn-animate-edit.primary {
+  background-color: var(--l2d-magenta) !important;
+  border-color: var(--l2d-magenta) !important;
+}
+
+/* Conteúdo das páginas (sempre com escopo em .contents, para não quebrar o editor) */
+body .v-application .contents h1,
+body .v-application .contents h2,
+body .v-application .contents h3 {
+  color: var(--l2d-roxo) !important;
+}
+body .v-application .contents a:not(.toc-anchor) {
+  color: var(--l2d-azul) !important;
+}
